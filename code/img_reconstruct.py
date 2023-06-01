@@ -6,11 +6,9 @@ from torch import nn
 from torch.utils.data import Dataset, DataLoader
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
-from torchvision import transforms
 import cv2
 import numpy as np
 import pandas as pd
-import math
 import matplotlib.pyplot as plt
 from typing import Tuple, Callable
 
@@ -73,13 +71,13 @@ def process_data(directory: str, train: bool, test_files: list) -> Tuple[torch.T
     return raw_data, num_features, image_paths, digits
 
 
-
 # define data transformations
 def feature_transform(x: torch.Tensor):
     # standardizes the features of a given data point
     mean = x.mean()
     std = x.std()
     return x.sub(mean).div(std)
+
 
 def img_label_transform(y: str):
     # transforms an image path to a usable tensor
@@ -92,9 +90,9 @@ def img_label_transform(y: str):
         raise Exception(f"Image not found: {y}")
     return label.cuda()
 
+
 def digit_label_transform(y: str):
     return int(y)
-
 
 
 # create train and test Datasets and DataLoaders
@@ -172,7 +170,6 @@ def create_model(num_features: int, device: str, verbose: bool) -> nn.Module:
     return model
 
 
-
 # Training loop
 def train_loop(dataloader: DataLoader, model: nn.Module, loss_fn, optimizer, print_loss: bool, loss_list: list) -> list:
     num_batches = len(dataloader)
@@ -246,10 +243,10 @@ def plot_loss(losses: list) -> None:
 def run(directory: str, device: str, test_files, batch_size, loss_fn, learning_rate, epochs: int):
     print("PART 1")
     train_data, num_features, train_image_paths, _ = process_data(
-                                                                 directory, True, None)
+        directory, True, None)
     print("PART 2")
     test_data, num_features, test_image_paths, _ = process_data(
-                                                               directory, False, None)
+        directory, False, None)
     print("PART 3")
     train_dataloader, test_dataloader = prep_data(
         train_data, train_image_paths, test_data, test_image_paths, img_label_transform, batch_size)
@@ -274,11 +271,11 @@ class L1_SSIM_loss(MS_SSIM):
         return (0.5 * (1. - super().forward(x, y))) + (0.5 * l1.forward(x, y))
 
 
-def test_run( directory: str, device: str, test_files, batch_size, loss_fn, learning_rate, epochs: int):
+def test_run(directory: str, device: str, test_files, batch_size, loss_fn, learning_rate, epochs: int):
     train_data, num_features, train_image_paths, _ = process_data(
-                                                                 directory, True, test_files)
+        directory, True, test_files)
     test_data, num_features, test_image_paths, _ = process_data(
-                                                               directory, False, test_files)
+        directory, False, test_files)
     _, test_dataloader = prep_data(
         train_data, train_image_paths, test_data, test_image_paths, img_label_transform, batch_size)
     model = create_model(num_features, device, False)
@@ -341,7 +338,7 @@ def main():
                 if (filename[-7:] == 'test.pt'):
                     try:
                         model, test_loss, test_psnr, test_ssim = test_run(
-                                                                          sample_dir, device, [filename], batch_size, loss_fn, learning_rate, epochs)
+                            sample_dir, device, [filename], batch_size, loss_fn, learning_rate, epochs)
                         results['crystal_position'].append(crystal)
                         results['filename'].append(filename)
                         results['test_loss'].append(test_loss)
